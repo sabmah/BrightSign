@@ -34,11 +34,12 @@ Function deviceInfo_Initialize(msgPort As Object, userVariables As Object, bsp a
     deviceInfo.channelUrl = ""
 
     if not currentSync.ReadFromFile("current-sync.xml") then
-	    print "### No current sync state available"
+	    deviceInfo.bsp.diagnostics.printdebug( "### No current sync state available")
     else
         deviceInfo.channelUrl = currentSync.LookupMetadata("client", "base")
 	endif
 
+    deviceInfo.bsp.diagnostics.printdebug("deviceInfo Initialized");
 
   return deviceInfo
 End Function
@@ -47,13 +48,13 @@ End Function
 
 Function deviceInfo_ProcessEvent(event as Object) as boolean
 	retval = false
-    print "Type of event is ";type(event)
+    m.bsp.diagnostics.printdebug( "Type of event is " + type(event))
     
 	if type(event) = "roAssociativeArray" then
         if type(event["EventType"]) = "roString"
              if (event["EventType"] = "SEND_PLUGIN_MESSAGE") then
                 if event["PluginName"] = "DeviceInfo" then
-                    print "event DeviceInfo"
+                    h.bsp.diagnostics.printdebug( "event DeviceInfo")
                     pluginMessage$ = event["PluginMessage"]
                     retval = SendDeviceInfo(pluginMessage$, m)
                 endif
@@ -72,29 +73,29 @@ end Function
 
 Function SendDeviceInfo(msg as string, h as Object) as Object
 
-	print "DeviceInfo: ";msg;
-    print "Ip: ";deviceInfo.ip;
-    print "Name: ";deviceInfo.unitName;
-    print "Channel: ";deviceInfo.channelUrl;
-    print "Serial Number: "; deviceInfo.uniqueId;
+	h.bsp.diagnostics.printdebug("DeviceInfo: " + msg);
+    h.bsp.diagnostics.printdebug( "Ip: "+h.ip);
+    h.bsp.diagnostics.printdebug( "Name: "+h.unitName);
+    h.bsp.diagnostics.printdebug( "Channel: "+h.channelUrl);
+    h.bsp.diagnostics.printdebug( "Serial Number: "+ h.uniqueId);
 
 	retval=false
 
     info = CreateObject("roAssociativeArray")
 
-    info.AddReplace("Ip", deviceInfo.ip)
-    info.AddReplace("Name", deviceInfo.unitName)
-    info.AddReplace("Channel", deviceInfo.channelUrl)
-    info.AddReplace("SerialNumber", deviceInfo.uniqueId)
+    info.AddReplace("Ip", h.ip)
+    info.AddReplace("Name", h.unitName)
+    info.AddReplace("Channel", h.channelUrl)
+    info.AddReplace("SerialNumber", h.uniqueId)
 
-	if deviceInfo.userVariables["DeviceInfo_url"]<>invalid
-	    DeviceInfo_url=deviceInfo.userVariables["DeviceInfo_url"].currentValue$
+	if h.userVariables["DeviceInfo_url"]<>invalid
+	    DeviceInfo_url=h.userVariables["DeviceInfo_url"].currentValue$
 	else
 	    DeviceInfo_url=""
     end if
 
     if DeviceInfo_url<>""
-        print DeviceInfo_url
+        deviceInfo.bsp.diagnostics.printdebug(DeviceInfo_url)
 
 		xfer = CreateObject("roUrlTransfer") 
 		
@@ -103,7 +104,7 @@ Function SendDeviceInfo(msg as string, h as Object) as Object
 		xfer.PostFromString(FormatJson(info, 1)) 
 
 	else
-	    print "No DeviceInfo_url user variable is defined."
+	    h.bsp.diagnostics.printdebug( "No DeviceInfo_url user variable is defined.")
 	endif
 
 	return retval
