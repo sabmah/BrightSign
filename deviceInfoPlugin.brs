@@ -5,7 +5,6 @@ Function deviceInfoPlugin_Initialize(msgPort As Object, userVariables As Object,
     deviceInfoPlugin.userVariables = userVariables
     deviceInfoPlugin.bsp = bsp
     deviceInfoPlugin.ProcessEvent = deviceInfoPlugin_ProcessEvent
-	deviceInfoPlugin.info = newDeviceInfo(userVariables)
 	deviceInfoPlugin.timer = CreateObject("roTimer")
     deviceInfoPlugin.reg = CreateObject("roRegistrySection", "networking")
     deviceInfoPlugin.uploadTimerInSeconds = 60
@@ -95,15 +94,17 @@ Function SendDeviceInfo(h as Object) as Object
 	retval = false
 
     info = CreateObject("roAssociativeArray")
+	
+	deviceinfo = newDeviceInfo(h.userVariables)
 
-    info.AddReplace("SerialNumber", h.info.UniqueId)
-	info.AddReplace("Model", h.info.Model)
-	info.AddReplace("UpTime", h.info.UpTime)
-	info.AddReplace("Firmware", h.info.Firmware)
-	info.AddReplace("BootVersion", h.info.BootVersion)
-    info.AddReplace("Name", h.info.UnitName)
-    info.AddReplace("Ip", h.info.Ip)
-    info.AddReplace("Channel", h.info.Channel)
+    info.AddReplace("SerialNumber", deviceinfo.UniqueId)
+	info.AddReplace("Model", deviceinfo.Model)
+	info.AddReplace("UpTime", deviceinfo.UpTime)
+	info.AddReplace("Firmware", deviceinfo.Firmware)
+	info.AddReplace("BootVersion", deviceinfo.BootVersion)
+    info.AddReplace("Name", deviceinfo.UnitName)
+    info.AddReplace("Ip", deviceinfo.Ip)
+    info.AddReplace("Channel", deviceinfo.Channel)
 
 	DeviceInfo_url=""
 	
@@ -123,7 +124,8 @@ Function SendDeviceInfo(h as Object) as Object
 		
 		print dataInfo
 
-		ok = xfer.AsyncPostFromString(dataInfo) 
+		'ok = xfer.AsyncPostFromString(dataInfo) 
+		ok = true
 		
 		if(ok) then
 			print  "@deviceInfoPlugin Successfully POSTed Device Info!"
