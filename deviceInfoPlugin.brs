@@ -52,8 +52,9 @@ Function deviceInfoPlugin_ProcessEvent(event as Object)
 	if type(event) = "roTimerEvent" then
 		if event.GetUserData() <> invalid then
 			if event.GetUserData() = "SEND_DEVICEINFO" then
-				print "#### SENDING DEVICE INFO"
-				retval = true
+			    print "@deviceInfoPlugin Sending Device Info..."
+				success = SendDeviceInfo(m)
+				retval = success
 			end if
 		end if
 	end if
@@ -87,5 +88,54 @@ Function newDeviceInfo(userVariables As Object)
 
     return deviceInfo
 
+End Function
+
+Function SendDeviceInfo(h as Object) as Object
+	
+	retval = false
+
+    info = CreateObject("roAssociativeArray")
+
+    info.AddReplace("SerialNumber", h.info.UniqueId)
+	info.AddReplace("Model", h.info.Model)
+	info.AddReplace("UpTime", h.info.UpTime)
+	info.AddReplace("Firmware", h.info.Firmware)
+	info.AddReplace("BootVersion", h.info.BootVersion)
+    info.AddReplace("Name", h.info.UnitName)
+    info.AddReplace("Ip", h.info.Ip)
+    info.AddReplace("Channel", h.info.Channel)
+
+	DeviceInfo_url=""
+	
+	if h.userVariables["DeviceInfo_url"]<>invalid
+	    DeviceInfo_url = h.userVariables["DeviceInfo_url"].currentValue$
+    end if
+
+    if DeviceInfo_url <> ""
+        print "@deviceInfoPlugin POST Url :"; DeviceInfo_url
+        print "@deviceInfoPlugin POST-ING Device Info..."
+		
+		xfer = CreateObject("roUrlTransfer") 
+		xfer.SetURL(DeviceInfo_url)
+        xfer.AddHeader("Content-Type", "application/json")
+		
+		dataInfo = FormatJson(info)
+		
+		print dataInfo
+
+		ok = xfer.AsyncPostFromString(dataInfo) 
+		
+		if(ok) then
+			print  "@deviceInfoPlugin Successfully POSTed Device Info!"
+			retval = true
+		else
+			print  "@deviceInfoPlugin Cannot POST Device Info!"
+		endif
+
+	else
+	    print  "@deviceInfoPlugin No DeviceInfo_url user variable is defined."
+	endif
+
+	return retval
 End Function
 
