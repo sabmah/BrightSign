@@ -1,11 +1,11 @@
 Function deviceInfoPlugin_Initialize(msgPort As Object, userVariables As Object, bsp as Object)
 
     deviceInfoPlugin = {}
-	deviceInfoPlugin.info = newDeviceInfo(userVariables)
     deviceInfoPlugin.msgPort = msgPort
     deviceInfoPlugin.userVariables = userVariables
     deviceInfoPlugin.bsp = bsp
     deviceInfoPlugin.ProcessEvent = deviceInfoPlugin_ProcessEvent
+	deviceInfoPlugin.info = newDeviceInfo(userVariables)
 	deviceInfoPlugin.timer = CreateObject("roTimer")
     deviceInfoPlugin.reg = CreateObject("roRegistrySection", "networking")
     deviceInfoPlugin.uploadTimerInSeconds = 60
@@ -65,9 +65,14 @@ Function newDeviceInfo(userVariables As Object)
     deviceInfo.Firmware = player.GetVersion()
     deviceInfo.BootVersion = player.GetBootVersion()
     deviceInfo.UnitName = registrySection.Read("un")
-    deviceInfo.ip = net.GetCurrentConfig().ip4_address
+    deviceInfo.Ip = net.GetCurrentConfig().ip4_address
+	deviceInfo.Channel = ""
 	
-    'deviceInfo.Channel = if userVariables["Channel"] <> invalid then userVariables["Channel"].currentValue$ else "null"
+	'print userVariables.Channel
+	
+    if (userVariables.Channel <> invalid) then 
+		deviceInfo.Channel = userVariables.Channel.currentValue$ 
+	end if
 
     return deviceInfo
 
