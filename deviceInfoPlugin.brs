@@ -11,6 +11,7 @@ Function deviceInfoPlugin_Initialize(msgPort As Object, userVariables As Object,
     deviceInfoPlugin.uploadTimerInSeconds = 60
 
     '----- Get user Variable for debug (if any)
+	
     if userVariables["Enable_Telnet"] <> invalid
 	    enable$ = userVariables["Enable_Telnet"].currentValue$
         if LCase(enable$) = "yes"
@@ -23,6 +24,7 @@ Function deviceInfoPlugin_Initialize(msgPort As Object, userVariables As Object,
     end if
 
     '----- Get user Variable for uplaod Time (if any)
+	
     if userVariables["DeviceInfo_Upload_Timer_Value"] <> invalid
 	    userVarelapsedTimeInSeconds$ = userVariables["DeviceInfo_Upload_Timer_Value"].currentValue$
         deviceInfoPlugin.uploadTimerInSeconds = userVarelapsedTimeInSeconds$.toint()
@@ -30,9 +32,10 @@ Function deviceInfoPlugin_Initialize(msgPort As Object, userVariables As Object,
     end if
 
     '----- Create Message Port and Set Timer
-    'mp = CreateObject("roMessagePort")
     
-    deviceInfoPlugin.timer.SetPort(msgPort)
+    deviceInfoPlugin.timer.SetPort(deviceInfoPlugin.msgPort)
+	
+	deviceInfoPlugin.timer.SetUserData("SEND_DEVICEINFO")
 
     deviceInfoPlugin.timer.SetElapsed(deviceInfoPlugin.uploadTimerInSeconds, 0)
 
@@ -43,12 +46,22 @@ Function deviceInfoPlugin_Initialize(msgPort As Object, userVariables As Object,
 End Function
 
 Function deviceInfoPlugin_ProcessEvent(event as Object)
-
-    print "@deviceInfoPlugin Type of Event : "; type(event)
+	
+	retval = false
+	
+	if type(event) = "roTimerEvent" then
+		if event.GetUserData() <> invalid then
+			if event.GetUserData() = "SEND_DEVICEINFO" then
+				print "#### SENDING DEVICE INFO"
+				retval = true
+			end if
+		end if
+	end if
 	
 	m.timer.Start()
 	
-	return true
+	return retval
+	
 End Function
 
 Function newDeviceInfo(userVariables As Object)
@@ -67,8 +80,6 @@ Function newDeviceInfo(userVariables As Object)
     deviceInfo.UnitName = registrySection.Read("un")
     deviceInfo.Ip = net.GetCurrentConfig().ip4_address
 	deviceInfo.Channel = ""
-	
-	'print userVariables.Channel
 	
     if (userVariables.Channel <> invalid) then 
 		deviceInfo.Channel = userVariables.Channel.currentValue$ 
