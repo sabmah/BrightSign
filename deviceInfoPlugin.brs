@@ -134,9 +134,9 @@ Function SendDeviceInfo(h as Object) as Object
 		
 		print dataInfo
 
-		ok = xfer.AsyncPostFromString(dataInfo) 
+		responseCode = xfer.PostFromString(dataInfo) 
 				
-		if(ok) then
+		if responseCode >= 200 OR responseCode <= 204 then
 			print  "@deviceInfoPlugin Successfully POSTed Device Info!"
 			retval = true
 		else
