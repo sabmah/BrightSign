@@ -6,32 +6,32 @@ Function snapshotUploaderPlugin_Initialize(msgPort As Object, userVariables As O
     snapshotUploaderPlugin.userVariables = userVariables
     snapshotUploaderPlugin.bsp = bsp
     snapshotUploaderPlugin.ProcessEvent = snapshotUploaderPlugin_ProcessEvent
-    snapshotUploaderPlugin.reg = CreateObject("roRegistrySection", "networking")
+	snapshotUploaderPlugin.snapshotUploadUrl = ""
 
     '----- Get user Variable for debug (if any)
+	reg = CreateObject("roRegistrySection", "networking")
 	
     if userVariables["Enable_Telnet"] <> invalid
 	    enable$ = userVariables["Enable_Telnet"].currentValue$
         if LCase(enable$) = "yes"
-            snapshotUploaderPlugin.reg.write("telnet", "23")
+            reg.write("telnet", "23")
             print "@snapshotUploaderPlugin TELNET Enabled."
         else
-            snapshotUploaderPlugin.reg.delete("telnet", "23")
+            reg.delete("telnet", "23")
             print "@snapshotUploaderPlugin TELNET Disabled."
         end if
     end if
+	
+	'---- Get Snapshot upload Url
+	if userVariables["snapshot_upload_url"]<>invalid then
+		snapshotUploaderPlugin.snapshotUploadUrl = userVariables["snapshot_upload_url"].currentValue$
+	end if
 
-    '---- Get Player Unit Id
+    '---- Get Player Unit Id and Unit Name
     player = CreateObject("roDeviceInfo")
+	
     snapshotUploaderPlugin.unitId = player.GetDeviceUniqueId()
-
-    '---- Set Headers for Snapshot Upload
-    headers = {}
-
-    headers["Content-Type"] = "image/jpeg"
-    headers["Connection"] = "Keep-Alive"
-
-    snapshotUploaderPlugin.headers = headers
+    snapshotUploaderPlugin.unitName = reg.Read("un")
 
     return snapshotUploaderPlugin
 
@@ -45,22 +45,21 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
 		if type(event["EventType"]) = "roString" OR type(event["EventType"]) = "String" then
 			if event["EventType"] = "SNAPSHOT_CAPTURED" then
 
-                snapshotUploadUrl$ = ""
-                unitId$ = m.unitId
-				snapshotName$ = event["SnapshotName"]
-                filePath$ = "snapshots/" + snapshotName$
-                fileSize% = 0
+                snapshotUploadUrl = m.snapshotUploadUrl
+                unitId = m.unitId
+				unitName = m.unitName
+				snapshotName = event["SnapshotName"]
+                filePath = "snapshots/" + snapshotName
+                fileSize = 0
 
-			    print "@snapshotUploaderPlugin SNAPSHOT filename is :"; snapshotName$
+			    print "@snapshotUploaderPlugin SNAPSHOT filename is :"; snapshotName
 
-                if m.userVariables["snapshot_upload_url"]<>invalid then
-                    snapshotUploadUrl = m.userVariables["snapshot_upload_url"].currentValue$
-                end if
-
+				STOP
+				
                 '---- Send SnapShot
-                if snapshotUploadUrl <> "" AND unitId <> "" then
+                if (snapshotUploadUrl <> "" AND unitId <> "" AND unitName <> "") then
 
-                    checkFile = CreateObject("roReadFile", filePath$)
+                    checkFile = CreateObject("roReadFile", filePath)
 
                     '---- Get File Size
                     if (checkFile <> invalid) then
@@ -72,23 +71,26 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
                     '---- Only Send if File has some Content
                     if fileSize > 0 then
 
-                        m.headers["Content-Length"] = stri(fileSize%)
-
                         xfr = CreateObject("roUrlTransfer")
-                        xfr.SetUrl(snapshotUploadUrl$ + unitId)
+                        xfr.SetUrl(snapshotUploadUrl + unitId)
+						xfr.AddHeader("Content-Length", stri(fileSize))
+						xfr.AddHeader("Content-Type", "multipart/form-data")
+						xfr.AddHeader("Connection", "keep-Alive")
+						xfr.AddHeader("unitName", unitName)
+   
+                        responseCode = xfr.PostFromFile(filePath)
 
-                        ok = xfr.AsyncPostFromFile(filePath$)
-
-                        if ok then
-                            print "@snapshotUploaderPlugin Successfully Posted the SnapShot File!"; snapshotName$
+                        if responseCode >= 200 OR responseCode <= 204 then
+                            print "@snapshotUploaderPlugin Successfully Posted the SnapShot File "; snapshotName
                             retval = true
                         else
-                            print "@snapshotUploaderPlugin Cannot Post the SnapShot File!"
+                            print "@snapshotUploaderPlugin Cannot Post the SnapShot File!";strI(responseCode)
                         end if
                     else
                         print "@snapshotUploaderPlugin Snapshot is an empty file"
                     end if      
-
+				else
+					print "@snapshotUploaderPlugin snapshotUploadUrl OR unitId OR unitName Not Provided."
                 end if
 			end if
 		end if
@@ -97,4 +99,3 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
 	return retval
 
 End Function
-
