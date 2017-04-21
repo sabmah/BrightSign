@@ -124,9 +124,8 @@ Function SendDeviceInfo(h as Object) as Object
 		
 		print dataInfo
 
-		'ok = xfer.AsyncPostFromString(dataInfo) 
-		ok = true
-		
+		ok = xfer.AsyncPostFromString(dataInfo) 
+				
 		if(ok) then
 			print  "@deviceInfoPlugin Successfully POSTed Device Info!"
 			retval = true
@@ -140,4 +139,3 @@ Function SendDeviceInfo(h as Object) as Object
 
 	return retval
 End Function
-
