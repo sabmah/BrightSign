@@ -1,3 +1,12 @@
+REM
+REM @title               Device Information Uploader
+REM @author              Sabin Maharjan
+REM @date-created        04/21/2017
+REM @date-last-modified  04/21/2017
+REM
+REM @description         Uploads Device Information Periodically Given the User Variable time value
+REM
+
 Function deviceInfoPlugin_Initialize(msgPort As Object, userVariables As Object, bsp as Object)
 
     deviceInfoPlugin = {}
