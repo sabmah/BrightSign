@@ -21,6 +21,7 @@ Function snapshotUploaderPlugin_Initialize(msgPort As Object, userVariables As O
         end if
     end if
 
+    '---- Set Headers for Snapshot Upload
     headers = {}
 
     headers["Content-Type"] = "image/jpeg"
@@ -39,34 +40,50 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
 	if type(event) = "roAssociativeArray" then
 		if type(event["EventType"]) = "roString" OR type(event["EventType"]) = "String" then
 			if event["EventType"] = "SNAPSHOT_CAPTURED" then
-			    print "@snapshotUploaderPlugin SNAPSHOT EVENT HIT..."
 
+                snapshotUploadUrl$ = ""
 				snapshotName$ = event["SnapshotName"]
                 filePath$ = "snapshots/" + snapshotName$
                 fileSize% = 0
 
-                checkFile = CreateObject("roReadFile", filePath$)
+			    print "@snapshotUploaderPlugin SNAPSHOT filename is :"; snapshotName$
 
-                '---- Get File Size
-                if (checkFile <> invalid) then
-                    checkFile.SeekToEnd()
-                    fileSize = checkFile.CurrentPosition()
-                    checkFile = invalid
+                if m.userVariables["snapshot_upload_url"]<>invalid
+                    snapshotUploadUrl = m.userVariables["snapshot_upload_url"].currentValue$
                 end if
 
-                '---- Only Send if File has some Content
-                if fileSize > 0 then
+                '---- Send SnapShot
+                if snapshotUploadUrl <> ""
 
-                    m.headers["Content-Length"] = stri(fileSize%)
+                    checkFile = CreateObject("roReadFile", filePath$)
 
-                    xfr = CreateObject("roUrlTransfer")
-
-                    ok = xfr.AsyncPostFromFile(filePath$)
-
-                    if ok then
-                        print "@snapshotUploaderPlugin Successfully Posted the SnapShot File"; snapshotName$
-                        retval = true
+                    '---- Get File Size
+                    if (checkFile <> invalid) then
+                        checkFile.SeekToEnd()
+                        fileSize = checkFile.CurrentPosition()
+                        checkFile = invalid
                     end if
+
+                    '---- Only Send if File has some Content
+                    if fileSize > 0 then
+
+                        m.headers["Content-Length"] = stri(fileSize%)
+
+                        xfr = CreateObject("roUrlTransfer")
+                        xfr.SetUrl(snapshotUploadUrl$)
+
+                        ok = xfr.AsyncPostFromFile(filePath$)
+
+                        if ok then
+                            print "@snapshotUploaderPlugin Successfully Posted the SnapShot File!"; snapshotName$
+                            retval = true
+                        else
+                            print "@snapshotUploaderPlugin Cannot Post the SnapShot File!"
+                        end if
+                    else
+                        print "@snapshotUploaderPlugin Snapshot is an empty file"
+                    end if      
+
                 end if
 			end if
 		end if
