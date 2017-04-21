@@ -21,6 +21,10 @@ Function snapshotUploaderPlugin_Initialize(msgPort As Object, userVariables As O
         end if
     end if
 
+    '---- Get Player Unit Id
+    player = CreateObject("roDeviceInfo")
+    snapshotUploaderPlugin.unitId = player.GetDeviceUniqueId()
+
     '---- Set Headers for Snapshot Upload
     headers = {}
 
@@ -42,18 +46,19 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
 			if event["EventType"] = "SNAPSHOT_CAPTURED" then
 
                 snapshotUploadUrl$ = ""
+                unitId$ = m.unitId
 				snapshotName$ = event["SnapshotName"]
                 filePath$ = "snapshots/" + snapshotName$
                 fileSize% = 0
 
 			    print "@snapshotUploaderPlugin SNAPSHOT filename is :"; snapshotName$
 
-                if m.userVariables["snapshot_upload_url"]<>invalid
+                if m.userVariables["snapshot_upload_url"]<>invalid then
                     snapshotUploadUrl = m.userVariables["snapshot_upload_url"].currentValue$
                 end if
 
                 '---- Send SnapShot
-                if snapshotUploadUrl <> ""
+                if snapshotUploadUrl <> "" AND unitId <> "" then
 
                     checkFile = CreateObject("roReadFile", filePath$)
 
@@ -70,7 +75,7 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
                         m.headers["Content-Length"] = stri(fileSize%)
 
                         xfr = CreateObject("roUrlTransfer")
-                        xfr.SetUrl(snapshotUploadUrl$)
+                        xfr.SetUrl(snapshotUploadUrl$ + unitId)
 
                         ok = xfr.AsyncPostFromFile(filePath$)
 
