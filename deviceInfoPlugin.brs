@@ -128,6 +128,8 @@ Function SendDeviceInfo(h as Object) as Object
 		
 		xfer = CreateObject("roUrlTransfer") 
         msgPort = CreateObject("roMessagePort")
+	xfer.SetPort(msgPort)
+	
 		xfer.SetUserData("DEVICEINFO_UPLOADED")
 		xfer.SetURL(DeviceInfo_url)
         xfer.AddHeader("Content-Type", "application/json")
