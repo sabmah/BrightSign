@@ -53,8 +53,6 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
                 fileSize = 0
 
 			    print "@snapshotUploaderPlugin SNAPSHOT filename is :"; snapshotName
-
-				STOP
 				
                 '---- Send SnapShot
                 if (snapshotUploadUrl <> "" AND unitId <> "" AND unitName <> "") then
@@ -75,19 +73,22 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
                         xfr.SetUrl(snapshotUploadUrl + unitId)
 						xfr.AddHeader("Content-Length", stri(fileSize))
 						xfr.AddHeader("Content-Type", "multipart/form-data")
-						xfr.AddHeader("Connection", "keep-Alive")
 						xfr.AddHeader("unitName", unitName)
    
-                        responseCode = xfr.PostFromFile(filePath)
+                        responseCode = xfr.PutFromFile(filePath)
 
-                        if responseCode >= 200 OR responseCode <= 204 then
-                            print "@snapshotUploaderPlugin Successfully Posted the SnapShot File "; snapshotName
-                            retval = true
-                        else
-                            print "@snapshotUploaderPlugin Cannot Post the SnapShot File!";strI(responseCode)
-                        end if
+                        if responseCode = 200 then
+							
+							print "@snapshotUploaderPlugin Successfully Posted the SnapShot "; snapshotName
+							print "@snapshotUploaderPlugin Status Code: "; stri(responseCode)
+							retval = true
+						else
+							print "@snapshotUploaderPlugin Cannot Post the SnapShot File! Response Code: "; responseCode
+							print xfr.GetFailureReason()
+						end if
+						
                     else
-                        print "@snapshotUploaderPlugin Snapshot is an empty file"
+                        print "@snapshotUploaderPlugin Snapshot is an empty file."
                     end if      
 				else
 					print "@snapshotUploaderPlugin snapshotUploadUrl OR unitId OR unitName Not Provided."
