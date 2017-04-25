@@ -1,3 +1,13 @@
+REM
+REM @title               Snapshot Uploader
+REM @author              Sabin Maharjan
+REM @company	         Port Of Portland
+REM @date-created        04/21/2017
+REM @date-last-modified  04/25/2017
+REM
+REM @description         Uploads Snapshots from BrightSign Device to REST Endpoint
+REM
+
 Function snapshotUploaderPlugin_Initialize(msgPort As Object, userVariables As Object, bsp as Object)
 
     snapshotUploaderPlugin = {}
