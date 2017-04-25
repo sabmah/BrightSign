@@ -3,7 +3,7 @@ REM @title               Device Information Uploader
 REM @author              Sabin Maharjan
 REM @company	         Port Of Portland
 REM @date-created        04/21/2017
-REM @date-last-modified  04/21/2017
+REM @date-last-modified  04/25/2017
 REM
 REM @description         Uploads Device Information Periodically Given the User Variable time value
 REM
@@ -127,6 +127,8 @@ Function SendDeviceInfo(h as Object) as Object
         print "@deviceInfoPlugin POST-ING Device Info..."
 		
 		xfer = CreateObject("roUrlTransfer") 
+        msgPort = CreateObject("roMessagePort")
+		xfer.SetUserData("DEVICEINFO_UPLOADED")
 		xfer.SetURL(DeviceInfo_url)
         xfer.AddHeader("Content-Type", "application/json")
 		
@@ -134,13 +136,33 @@ Function SendDeviceInfo(h as Object) as Object
 		
 		print dataInfo
 
-		responseCode = xfer.PostFromString(dataInfo) 
+		ok = xfer.AsyncPostFromString(dataInfo) 
 				
+        if ok = false then 
+            return false 
+        end if
+
+        gotResult = false
+        reason = "Unknown"
+        responseCode = 0
+
+        while gotResult = false
+            msg = wait(0, msgPort)
+            if msg.GetUserData() = "DEVICEINFO_UPLOADED"
+                gotResult = true
+                reason = msg.GetFailureReason()
+                responseCode = msg.GetResponseCode()
+            end if
+        end while
+
+        print "@deviceInfoPlugin Response Code: "; responseCode
+
 		if responseCode >= 200 OR responseCode <= 204 then
 			print  "@deviceInfoPlugin Successfully POSTed Device Info!"
 			retval = true
 		else
 			print  "@deviceInfoPlugin Cannot POST Device Info!"
+            print reason
 		endif
 
 	else
