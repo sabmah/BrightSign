@@ -45,54 +45,54 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
 		if type(event["EventType"]) = "roString" OR type(event["EventType"]) = "String" then
 			if event["EventType"] = "SNAPSHOT_CAPTURED" then
 
-                snapshotUploadUrl = m.snapshotUploadUrl
-                unitId = m.unitId
-				unitName = m.unitName
-				snapshotName = event["SnapshotName"]
-                filePath = "snapshots/" + snapshotName
-                fileSize = 0
+				snapshotUploadUrl = m.snapshotUploadUrl
+				unitId = m.unitId
+						unitName = m.unitName
+						snapshotName = event["SnapshotName"]
+				filePath = "snapshots/" + snapshotName
+				fileSize = 0
 
-			    print "@snapshotUploaderPlugin SNAPSHOT filename is :"; snapshotName
-				
-                '---- Send SnapShot
-                if (snapshotUploadUrl <> "" AND unitId <> "" AND unitName <> "") then
+					    print "@snapshotUploaderPlugin SNAPSHOT filename is :"; snapshotName
 
-                    checkFile = CreateObject("roReadFile", filePath)
+				'---- Send SnapShot
+				if (snapshotUploadUrl <> "" AND unitId <> "" AND unitName <> "") then
 
-                    '---- Get File Size
-                    if (checkFile <> invalid) then
-                        checkFile.SeekToEnd()
-                        fileSize = checkFile.CurrentPosition()
-                        checkFile = invalid
-                    end if
+				    checkFile = CreateObject("roReadFile", filePath)
 
-                    '---- Only Send if File has some Content
-                    if fileSize > 0 then
+				    '---- Get File Size
+				    if (checkFile <> invalid) then
+					checkFile.SeekToEnd()
+					fileSize = checkFile.CurrentPosition()
+					checkFile = invalid
+				    end if
 
-                        xfr = CreateObject("roUrlTransfer")
-                        xfr.SetUrl(snapshotUploadUrl + unitId)
-						xfr.AddHeader("Content-Length", stri(fileSize))
-						xfr.AddHeader("Content-Type", "multipart/form-data")
-						xfr.AddHeader("unitName", unitName)
-   
-                        responseCode = xfr.PutFromFile(filePath)
+				    '---- Only Send if File has some Content
+				    if fileSize > 0 then
 
-                        if responseCode = 200 then
-							
-							print "@snapshotUploaderPlugin Successfully Posted the SnapShot "; snapshotName
-							print "@snapshotUploaderPlugin Status Code: "; stri(responseCode)
-							retval = true
-						else
-							print "@snapshotUploaderPlugin Cannot Post the SnapShot File! Response Code: "; responseCode
-							print xfr.GetFailureReason()
-						end if
-						
-                    else
-                        print "@snapshotUploaderPlugin Snapshot is an empty file."
-                    end if      
+					xfr = CreateObject("roUrlTransfer")
+					xfr.SetUrl(snapshotUploadUrl + unitId)
+								xfr.AddHeader("Content-Length", stri(fileSize))
+								xfr.AddHeader("Content-Type", "multipart/form-data")
+								xfr.AddHeader("unitName", unitName)
+
+					responseCode = xfr.PutFromFile(filePath)
+
+					if responseCode = 200 then
+
+						print "@snapshotUploaderPlugin Successfully Posted the SnapShot "; snapshotName
+						print "@snapshotUploaderPlugin Status Code: "; stri(responseCode)
+						retval = true
+					else
+						print "@snapshotUploaderPlugin Cannot Post the SnapShot File! Response Code: "; responseCode
+						print xfr.GetFailureReason()
+					end if
+
+				    else
+					print "@snapshotUploaderPlugin Snapshot is an empty file."
+				    end if      
 				else
 					print "@snapshotUploaderPlugin snapshotUploadUrl OR unitId OR unitName Not Provided."
-                end if
+				end if
 			end if
 		end if
 	end if
