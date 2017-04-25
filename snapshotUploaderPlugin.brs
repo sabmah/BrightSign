@@ -16,10 +16,10 @@ Function snapshotUploaderPlugin_Initialize(msgPort As Object, userVariables As O
     snapshotUploaderPlugin.userVariables = userVariables
     snapshotUploaderPlugin.bsp = bsp
     snapshotUploaderPlugin.ProcessEvent = snapshotUploaderPlugin_ProcessEvent
-    snapshotUploaderPlugin.snapshotUploadUrl = ""
+	snapshotUploaderPlugin.snapshotUploadUrl = ""
 
     '----- Get user Variable for debug (if any)
-    reg = CreateObject("roRegistrySection", "networking")
+	reg = CreateObject("roRegistrySection", "networking")
 	
     if userVariables["Enable_Telnet"] <> invalid
 	    enable$ = userVariables["Enable_Telnet"].currentValue$
@@ -104,10 +104,12 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
 						
 						while gotResult = false
 							msg = wait(0, msgPort)
-							if msg.GetUserData() = "SNAPSHOT_UPLOADED"
-								gotResult = true
-								reason = msg.GetFailureReason()
-								responseCode = msg.GetResponseCode()
+							if type(msg) = "roUrlEvent" then
+								if msg.GetUserData() = "SNAPSHOT_UPLOADED"
+									gotResult = true
+									reason = msg.GetFailureReason()
+									responseCode = msg.GetResponseCode()
+								end if
 							end if
 						end while
 						
