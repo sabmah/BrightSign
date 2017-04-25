@@ -128,8 +128,8 @@ Function SendDeviceInfo(h as Object) as Object
 		
 		xfer = CreateObject("roUrlTransfer") 
         msgPort = CreateObject("roMessagePort")
-	xfer.SetPort(msgPort)
-	
+		xfer.SetPort(msgPort)
+		
 		xfer.SetUserData("DEVICEINFO_UPLOADED")
 		xfer.SetURL(DeviceInfo_url)
         xfer.AddHeader("Content-Type", "application/json")
@@ -150,11 +150,13 @@ Function SendDeviceInfo(h as Object) as Object
 
         while gotResult = false
             msg = wait(0, msgPort)
-            if msg.GetUserData() = "DEVICEINFO_UPLOADED"
-                gotResult = true
-                reason = msg.GetFailureReason()
-                responseCode = msg.GetResponseCode()
-            end if
+			if type(msg) = "roUrlEvent" then
+				if msg.GetUserData() = "DEVICEINFO_UPLOADED"
+					gotResult = true
+					reason = msg.GetFailureReason()
+					responseCode = msg.GetResponseCode()
+				end if
+			end if
         end while
 
         print "@deviceInfoPlugin Response Code: "; responseCode
