@@ -6,7 +6,7 @@ Function snapshotUploaderPlugin_Initialize(msgPort As Object, userVariables As O
     snapshotUploaderPlugin.userVariables = userVariables
     snapshotUploaderPlugin.bsp = bsp
     snapshotUploaderPlugin.ProcessEvent = snapshotUploaderPlugin_ProcessEvent
-	snapshotUploaderPlugin.snapshotUploadUrl = ""
+    snapshotUploaderPlugin.snapshotUploadUrl = ""
 
     '----- Get user Variable for debug (if any)
 	reg = CreateObject("roRegistrySection", "networking")
@@ -71,9 +71,9 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
 
 					xfr = CreateObject("roUrlTransfer")
 					xfr.SetUrl(snapshotUploadUrl + unitId)
-								xfr.AddHeader("Content-Length", stri(fileSize))
-								xfr.AddHeader("Content-Type", "multipart/form-data")
-								xfr.AddHeader("unitName", unitName)
+					xfr.AddHeader("Content-Length", stri(fileSize))
+					xfr.AddHeader("Content-Type", "multipart/form-data")
+					xfr.AddHeader("unitName", unitName)
 
 					responseCode = xfr.PutFromFile(filePath)
 
