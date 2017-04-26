@@ -1,13 +1,3 @@
-REM
-REM @title               Snapshot Uploader
-REM @author              Sabin Maharjan
-REM @company	         Port Of Portland
-REM @date-created        04/21/2017
-REM @date-last-modified  04/25/2017
-REM
-REM @description         Uploads Snapshots from BrightSign Device to REST Endpoint
-REM
-
 Function snapshotUploaderPlugin_Initialize(msgPort As Object, userVariables As Object, bsp as Object)
 
     snapshotUploaderPlugin = {}
@@ -43,6 +33,8 @@ Function snapshotUploaderPlugin_Initialize(msgPort As Object, userVariables As O
     snapshotUploaderPlugin.unitId = player.GetDeviceUniqueId()
     snapshotUploaderPlugin.unitName = reg.Read("un")
 
+	snapshotUploaderPlugin.userAgent = "BrightSign/" + player.GetDeviceUniqueId() + "/" + player.GetVersion() + " (" + player.GetModel() + ")"
+	
     return snapshotUploaderPlugin
 
 End Function
@@ -61,7 +53,7 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
 				snapshotName = event["SnapshotName"]
                 filePath = "snapshots/" + snapshotName
                 fileSize = 0
-
+					
 			    print "@snapshotUploaderPlugin SNAPSHOT filename is :"; snapshotName
 				
                 '---- Send SnapShot
@@ -79,18 +71,28 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
                     '---- Only Send if File has some Content
                     if fileSize > 0 then
 						
+						contentDisposition$ = "form-data; name="
+						contentDisposition$ = contentDisposition$ + chr(34)
+						contentDisposition$ = contentDisposition$ + "file"
+						contentDisposition$ = contentDisposition$ + chr(34)
+						contentDisposition$ = contentDisposition$ + "; filename="
+						contentDisposition$ = contentDisposition$ + chr(34)
+						contentDisposition$ = contentDisposition$ + filePath
+						contentDisposition$ = contentDisposition$ + chr(34)
+												
                         xfr = CreateObject("roUrlTransfer")
 						msgPort = CreateObject("roMessagePort")
-						xfr.SetUserData("SNAPSHOT_UPLOADED")
-												
-						xfr.SetPort(msgPort)
 						
+						xfr.SetUserData("SNAPSHOT_UPLOADED")				
+						xfr.SetPort(msgPort)
                         xfr.SetUrl(snapshotUploadUrl + unitId)
+						xfr.SetUserAgent(m.userAgent)
 						xfr.AddHeader("Content-Length", stri(fileSize))
 						xfr.AddHeader("Content-Type", "multipart/form-data")
+						xfr.AddHeader("Content-Disposition", contentDisposition$)
 						xfr.AddHeader("unitName", unitName)
 						
-						
+						STOP
                         ok = xfr.AsyncPostFromFile(filePath)
 						
 						if ok = false then 
