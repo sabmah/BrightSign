@@ -70,16 +70,7 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
 
                     '---- Only Send if File has some Content
                     if fileSize > 0 then
-						
-						contentDisposition$ = "form-data; name="
-						contentDisposition$ = contentDisposition$ + chr(34)
-						contentDisposition$ = contentDisposition$ + "file"
-						contentDisposition$ = contentDisposition$ + chr(34)
-						contentDisposition$ = contentDisposition$ + "; filename="
-						contentDisposition$ = contentDisposition$ + chr(34)
-						contentDisposition$ = contentDisposition$ + filePath
-						contentDisposition$ = contentDisposition$ + chr(34)
-												
+									
                         xfr = CreateObject("roUrlTransfer")
 						msgPort = CreateObject("roMessagePort")
 						
@@ -88,11 +79,9 @@ Function snapshotUploaderPlugin_ProcessEvent(event as Object)
                         xfr.SetUrl(snapshotUploadUrl + unitId)
 						xfr.SetUserAgent(m.userAgent)
 						xfr.AddHeader("Content-Length", stri(fileSize))
-						xfr.AddHeader("Content-Type", "multipart/form-data")
-						xfr.AddHeader("Content-Disposition", contentDisposition$)
+						xfr.AddHeader("Content-Type", "image/jpeg")
 						xfr.AddHeader("unitName", unitName)
 						
-						STOP
                         ok = xfr.AsyncPostFromFile(filePath)
 						
 						if ok = false then 
