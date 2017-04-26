@@ -3,7 +3,7 @@ REM @title               Device Information Uploader
 REM @author              Sabin Maharjan
 REM @company	         Port Of Portland
 REM @date-created        04/21/2017
-REM @date-last-modified  04/25/2017
+REM @date-last-modified  04/26/2017
 REM
 REM @description         Uploads Device Information Periodically Given the User Variable time value
 REM
@@ -89,6 +89,7 @@ Function newDeviceInfo(userVariables As Object)
     deviceInfo.BootVersion = player.GetBootVersion()
     deviceInfo.UnitName = registrySection.Read("un")
     deviceInfo.Ip = net.GetCurrentConfig().ip4_address
+    deviceInfo.Link = net.GetCurrentConfig().link
 	deviceInfo.Channel = ""
 	
     if (userVariables.Channel <> invalid) then 
@@ -114,6 +115,7 @@ Function SendDeviceInfo(h as Object) as Object
 	info.AddReplace("BootVersion", deviceinfo.BootVersion)
     info.AddReplace("Name", deviceinfo.UnitName)
     info.AddReplace("Ip", deviceinfo.Ip)
+    info.AddReplace("Link", deviceinfo.Link)
     info.AddReplace("Channel", deviceinfo.Channel)
 
 	DeviceInfo_url=""
